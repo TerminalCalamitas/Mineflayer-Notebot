@@ -8,10 +8,9 @@ var config = require("./config.json");
 var botVersion = "1.2";
 
 var options = {
-    username: config.bot.username || "notebot",
-    host: config.bot.host || "localhost",
-    port: config.bot.port || 25565,
-    version: "1.15.2",
+    auth: config.bot.auth || "microsoft",
+    host: config.bot.host || "195.90.214.23",
+    port: config.bot.port || 20262,
     checkTimeoutInterval: 5555*1000,
     plugins: {
       "bed":false,
@@ -35,13 +34,15 @@ var options = {
       "villager":false//maybe some more?
     }
 }
-
+console.log("createBot")
 var bot = mineflayer.createBot(options);
+console.log("handle commands")
 cmd_handler();
 
 bot.on("login", () => {
   console.log(`(${bot.username}) logged in!`);
-  bot.chat(util.colors("&bnotebot&7 v&9"+botVersion+"&7 made by &eMorganAnkan&7 with contributions from &b&lhhhzzzsss &7and &eThe_Cosmic_&r"))
+  bot.chat("AHHHH, It's midnight and everything is going wrong")
+  bot.chat("My sanity? Optional")
 });
 
 bot.on("chat", (username, message) => {

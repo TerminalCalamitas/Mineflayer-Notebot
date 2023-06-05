@@ -6,7 +6,7 @@ var commands = {};
 var categories = {};
 
 //main functions
-function load(prefix = "%", directory = "./commands") {
+function load(prefix = "!", directory = "./commands") {
   //setup global variable
   this.prefix = prefix;
   this.directory = directory;

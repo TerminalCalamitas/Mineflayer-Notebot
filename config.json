@@ -1,8 +1,8 @@
 {
   "bot": {
-    "username": "notebot",
-    "host": "localhost",
-    "port": 25565
+    "auth": "microsoft",
+    "host": "195.90.214.23",
+    "port": 20262
   },
   "settings": {
     "tune_speed": 80,
@@ -11,13 +11,13 @@
     "max_download_bytes": 10485760
   },
   "commands_perms": [
-    "The_Cosmic_",
-    "MorganAnkan"
+    "Admiral_Porg",
+    "Gurkenwerfer_"
   ],
   "eval": {
     "perms": [
-      "The_Cosmic_",
-      "MorganAnkan"
+      "Admiral_Porg",
+      "Gurkenwerfer_"
     ],
     "enabled": false
   }
