@@ -19,7 +19,7 @@ var bot = mineflayer.createBot(options)
 
 bot.on("spawn", () => {
   console.log(`(${bot.username}) logged in!`)
-  cmd_handler.load
+  cmd_handler.load()
 })
 
 bot.on("chat", (username, message) => {

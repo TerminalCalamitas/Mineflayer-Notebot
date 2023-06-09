@@ -225,7 +225,7 @@ function isValid(command) {
 }
 
 //module.exports
-module.exports = load
+module.exports.load = load
 module.exports.reload = reload
 module.exports.execute = execute
 module.exports.isCommand = isCommand
