@@ -1,11 +1,11 @@
-var { Midi } = require("@tonejs/midi");
-var { isValidFile } = require("./parser.js");
+var { Midi } = require("@tonejs/midi")
+var { isValidFile } = require("./parser.js")
 
-var fs = require("fs");
+var fs = require("fs")
 
-var compiledTracks = [];
-var timeConstant = (5 / 3) * 12;// 20
-var midi;
+var compiledTracks = []
+var timeConstant = (5 / 3) * 12// 20
+var midi
 
 /*
 Note structure:
@@ -20,49 +20,49 @@ Note structure:
 */
 function fixFileName(f) {
     if (f.includes("/")) {
-        var len = f.split("/").length;
-        f = f.split("/")[len - 1];
+        var len = f.split("/").length
+        f = f.split("/")[len - 1]
     }
-    return f.replace(".midi", "").replace(".mid", "");
+    return f.replace(".midi", "").replace(".mid", "")
 }
 
 function toNotebot(midiFile, cb) {
     if (!isValidFile(midiFile) || midiFile.indexOf(".mid") == -1) {
-        throw new Error(`${midiFile} is a invalid file!`);
+        throw new Error(`${midiFile} is a invalid file!`)
     }
-    var midiFileName = fixFileName(midiFile);//for output later
-    var midiData = fs.readFileSync(midiFile);
+    var midiFileName = fixFileName(midiFile)//for output later
+    var midiData = fs.readFileSync(midiFile)
     try {
-        midi = new Midi(midiData);
+        midi = new Midi(midiData)
     } catch(e) {
-        cb(undefined, e);
-        return;
+        cb(undefined, e)
+        return
     }
-    console.log(`Converting Midi file ${midi.name == "" ? midiFile : midi.name} to notebot format`);
+    console.log(`Converting Midi file ${midi.name == "" ? midiFile : midi.name} to notebot format`)
 
-    compileMIDI(midi);
-    var lines = [];
+    compileMIDI(midi)
+    var lines = []
     for (var i = 0; i < compiledTracks.length; i++) {
         for (var j = 0; j < compiledTracks[i].length; j++) {
-            lines.push(compiledTracks[i][j]);
+            lines.push(compiledTracks[i][j])
         }
     }
 
-    var finalString = "";
+    var finalString = ""
     for (var i = 0; i < lines.length; i++) {
-        finalString += lines[i] + (i === lines.length - 1 ? "" : "\n");
+        finalString += lines[i] + (i === lines.length - 1 ? "" : "\n")
 
     }
-    var songout = "./songs/" + midiFileName + ".txt";
-    fs.writeFileSync(songout, finalString);
-    console.log("Done! wrote song to ./songs/" + midiFileName + ".txt");
-    fs.unlink(midiFile, () => {});
-    midi = undefined;
-    compiledTracks = undefined;
-    finalString = "";
-    cb(songout);
+    var songout = "./songs/" + midiFileName + ".txt"
+    fs.writeFileSync(songout, finalString)
+    console.log("Done! wrote song to ./songs/" + midiFileName + ".txt")
+    fs.unlink(midiFile, () => {})
+    midi = undefined
+    compiledTracks = undefined
+    finalString = ""
+    cb(songout)
 }
-module.exports.toNotebot = toNotebot;
+module.exports.toNotebot = toNotebot
 
 function isPercussion(channel) {
     return channel == 10; //channel 10 reserved for percussion
@@ -70,23 +70,23 @@ function isPercussion(channel) {
 
 function compileMIDI(midi) {
 
-    compiledTracks = [];
+    compiledTracks = []
 
     for (var i = 0; i < midi.tracks.length; i++) {
-        compiledTracks[i] = [];
+        compiledTracks[i] = []
     }
 
     for (var i = 0; i < midi.tracks.length; i++) {
         if (midi.tracks[i].notes.length == 0) {// no notes
             console.log(`skipping midi track ${midi.tracks[i].name} (track: ${i}) due to no notes`)
-            continue;
+            continue
         }
 
         // then loop through again to compile
         if (curInstrument !== null) {
             for (var j = 0; j < midi.tracks[i].notes.length; j++) {
-                var curInstrument = getMinecraftInstrument(midi.tracks[i].instrument.number, midi.tracks[i], 0, midi.tracks[i].notes[i] == undefined ? undefined : midi.tracks[i].notes[i].midi);
-                compileNoteFromTrack(i, j, curInstrument);
+                var curInstrument = getMinecraftInstrument(midi.tracks[i].instrument.number, midi.tracks[i], 0, midi.tracks[i].notes[i] == undefined ? undefined : midi.tracks[i].notes[i].midi)
+                compileNoteFromTrack(i, j, curInstrument)
             }
         }
 
@@ -97,33 +97,33 @@ function compileMIDI(midi) {
 function compileNoteFromTrack(trackNum, curNote, curInstrument) {
 
     if (midi.tracks[trackNum].notes[curNote] == undefined)
-        return;
+        return
     // done playing this track
 
     var noteTime = Math.floor(midi.tracks[trackNum].notes[curNote].time * timeConstant); //convert seconds to minecraft ticks
 
     if (isPercussion(midi.tracks[trackNum].channel)) {
         // has to check this again for every note if this track is percussion because percussion can use different notes for different drums
-        var useInstrument = getMinecraftInstrument(midi.tracks[trackNum].instrument.number, midi.tracks[trackNum], curNote);
+        var useInstrument = getMinecraftInstrument(midi.tracks[trackNum].instrument.number, midi.tracks[trackNum], curNote)
     } else {
-        var useInstrument = curInstrument;
+        var useInstrument = curInstrument
     }
 
     if (useInstrument == undefined)
-        return;
-    compiledTracks[trackNum].push(`${noteTime}:${convertNote(midi.tracks[trackNum].notes[curNote].midi, midi.tracks[trackNum])}:${useInstrument}`);
+        return
+    compiledTracks[trackNum].push(`${noteTime}:${convertNote(midi.tracks[trackNum].notes[curNote].midi, midi.tracks[trackNum])}:${useInstrument}`)
 
 }
 
 function convertNote(noteVal, midiTrack) {
-    if(isPercussion(midiTrack.channel)) return 0;
+    if(isPercussion(midiTrack.channel)) return 0
 
     if(noteVal >= 30 && noteVal <= 54) {
-        return noteVal - 30;
+        return noteVal - 30
     } else if(noteVal >= 54 && noteVal <= 78) {
-        return noteVal - 54;
+        return noteVal - 54
     } else if(noteVal >= 78 && noteVal <= 102) {
-        return noteVal - 78;
+        return noteVal - 78
     } else {
         return 0; // deafult to 0 if unknown
     }
@@ -134,7 +134,7 @@ function getMinecraftInstrument(instrumentNumber, midiTrack, drumNoteNumber, mid
 
     if (isPercussion(midiTrack.channel)) {
         if (midiTrack.notes.length > 0) {
-            var drumId = midiTrack.notes[drumNoteNumber].midi;
+            var drumId = midiTrack.notes[drumNoteNumber].midi
 
             // TODO: drumid 24-34 & 82-87 
             // https://jazz-soft.net/demo/GeneralMidiPerc.html
@@ -163,18 +163,18 @@ function getMinecraftInstrument(instrumentNumber, midiTrack, drumNoteNumber, mid
 
     //normal midi instruments https://jazz-soft.net/demo/GeneralMidi.html
 
-    var MCInstrument = 0;
+    var MCInstrument = 0
 
     if (midiPitch != undefined) {//TODO: make this a bit smaller/less if statements
 
 
         /* reference:
         if (midiPitch >= 30 && midiPitch <= 54) {//low (bass, digeridoo)
-            MCInstrument = 0;
+            MCInstrument = 0
         } else if (midiPitch >= 54 && midiPitch <= 78) {//medium (harp, iron xylophone, bit, banjo, pling)
-            MCInstrument = 0;
+            MCInstrument = 0
         } else if (midiPitch >= 78 && midiPitch <= 102) {//high (bells, chimes, xylophone)
-            MCInstrument = 0;
+            MCInstrument = 0
         } */
         if (instrumentNumber >= 0 && instrumentNumber <= 7) {// Piano
 
@@ -314,11 +314,11 @@ function getMinecraftInstrument(instrumentNumber, midiTrack, drumNoteNumber, mid
 
         } /*else if (instrumentNumber >= 120 && instrumentNumber <= 127) {// Sound Effects
             if (midiPitch >= 30 && midiPitch <= 54) {//low (bass, digeridoo)
-                MCInstrument = 0;
+                MCInstrument = 0
             } else if (midiPitch >= 54 && midiPitch <= 78) {//medium (harp, iron xylophone, bit, banjo, pling)
-                MCInstrument = 0;
+                MCInstrument = 0
             } else if (midiPitch >= 78 && midiPitch <= 102) {//high (bells, chimes, xylophone)
-                MCInstrument = 0;
+                MCInstrument = 0
             }
 
         }*/ // very unlikley to see in a midi file so just be harp...
